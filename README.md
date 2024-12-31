@@ -8,4 +8,5 @@
 
 - [x]  display demo ui 
 - [x]  port button with `kaypad` in `lv_port_indev`
-- [ ]  map kay value with diffrence button input type(like sigle-click double-click or long-press)
+- [x]  map kay value with diffrence button input type(like sigle-click double-click or long-press)
+- [x]  embed `Multi Button`

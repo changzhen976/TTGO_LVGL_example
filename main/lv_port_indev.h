@@ -13,6 +13,8 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 
+#include "multi_button.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +39,8 @@ extern "C" {
 extern lv_indev_t * indev_keypad;
 
 void lv_port_indev_init(void);
+
+void Multi_btn_timer_5ms();
 
 /**********************
  *      MACROS

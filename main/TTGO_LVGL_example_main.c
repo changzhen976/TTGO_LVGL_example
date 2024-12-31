@@ -20,6 +20,8 @@
 #include "lvglSpiCfg.h"
 #include "lv_port_indev.h"
 
+#include "multi_button.h"
+
 // static const char *TAG = "example";
 
 extern void example_demo_ui(lv_disp_t *disp);
@@ -27,4 +29,13 @@ extern void example_demo_ui(lv_disp_t *disp);
 void app_main(void)
 {
     LVGL_SPI_initFunc();
+
+
+
+    while (1)
+    {
+        vTaskDelay(pdMS_TO_TICKS(10));
+        Multi_btn_timer_5ms();
+    }
+    
 }

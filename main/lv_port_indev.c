@@ -16,6 +16,24 @@
  *      DEFINES
  *********************/
 
+/* Multi Button */
+enum Button_IDs {
+	btnPlus_id,
+	btnMinus_id,
+};
+
+struct Button btnPlus;
+struct Button btnMinus;
+
+static uint8_t btnP_Pressed = 0;
+static uint8_t btnM_Pressed = 0;
+
+uint8_t read_button_GPIO(uint8_t button_id);
+void BTNP_PRESS_DOWN_Handler(void* btn);
+void BTNP_PRESS_UP_Handler(void* btn);
+void BTNM_PRESS_DOWN_Handler(void* btn);
+void BTNM_PRESS_UP_Handler(void* btn);
+
 /**********************
  *      TYPEDEFS
  **********************/
@@ -88,15 +106,61 @@ void lv_port_indev_init(void)
 /*Initialize your keypad*/
 static void keypad_init(void)
 {
-    /*Your code comes here*/
+    /* GPIO Init */
     gpio_reset_pin(GPIO_NUM_35);
     gpio_set_direction(GPIO_NUM_35, GPIO_MODE_INPUT);
 
     gpio_reset_pin(GPIO_NUM_0);
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
-
     ESP_LOGI("GPIO", "Initialize GPIO OK");
+
+    /*---- Muilt Button Init ----*/
+
+    button_init(&btnPlus, read_button_GPIO, 0, btnPlus_id);
+	button_init(&btnMinus, read_button_GPIO, 0, btnMinus_id);
+
+    button_attach(&btnPlus,     PRESS_DOWN,       BTNP_PRESS_DOWN_Handler);
+    button_attach(&btnPlus,     PRESS_UP,       BTNP_PRESS_UP_Handler);
+    button_attach(&btnMinus,    PRESS_DOWN,       BTNM_PRESS_DOWN_Handler);
+    button_attach(&btnMinus,     PRESS_UP,       BTNP_PRESS_UP_Handler);
+
+    button_start(&btnPlus);
+	button_start(&btnMinus);
 }
+
+
+uint8_t read_button_GPIO(uint8_t button_id)
+{
+	// you can share the GPIO read function with multiple Buttons
+	switch(button_id)
+	{
+		case btnPlus_id:
+			return gpio_get_level(GPIO_NUM_35);
+		case btnMinus_id:
+			return gpio_get_level(GPIO_NUM_0);
+		default:
+			return 0;
+	}
+}
+
+void BTNP_PRESS_DOWN_Handler(void* btn){
+    btnP_Pressed = 1;
+}
+void BTNM_PRESS_DOWN_Handler(void* btn){
+    btnM_Pressed = 1;
+}
+
+void BTNP_PRESS_UP_Handler(void* btn){
+    btnP_Pressed = 0;
+}
+void BTNM_PRESS_UP_Handler(void* btn){
+    btnM_Pressed = 0;
+}
+
+void Multi_btn_timer_5ms(){
+    button_ticks();
+}
+
 
 /*Will be called by the library to read the mouse*/
 static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
@@ -148,13 +212,15 @@ static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 static uint32_t keypad_get_key(void)
 {
     /*Your code comes here*/
-    if (gpio_get_level(GPIO_NUM_35) == 0)
+    if (btnP_Pressed)
     {
+        btnP_Pressed = 0;
         return 3;
     }
 
-    if (gpio_get_level(GPIO_NUM_0) == 0)
+    if (btnM_Pressed)
     {
+        btnM_Pressed = 0;
         return 4;
     }
     return 0;

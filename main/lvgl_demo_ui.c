@@ -10,21 +10,23 @@ static void btn_event_cb(lv_event_t * e)
     lv_obj_t * btn = lv_event_get_target(e);
 
     if(code == LV_EVENT_KEY) {
-        ESP_LOGI("UI", "KEY EVENT!!"); 
-    }
+        ESP_LOGI("UI", "KEY EVENT Catched!!"); 
+        uint32_t key = lv_event_get_key(e);
+        ESP_LOGI("UI", "Get KEY : %d", (uint8_t)key);
 
-    if(code == LV_EVENT_CLICKED) {
-
-        ESP_LOGI("UI", "CLICKED EVENT!!"); 
         static uint8_t cnt = 0;
-        cnt++;
 
-        ESP_LOGI("UI", "Current Cnt : %d", cnt); 
+        if (key == LV_KEY_LEFT && cnt <=49){
+            cnt++;
+        }else if(key == LV_KEY_RIGHT && cnt >=1){
+            cnt--;
+        }
 
         /*Get the first child of the button which is the label and change its text*/
         lv_obj_t * label = lv_obj_get_child(btn, 0);
         lv_label_set_text_fmt(label, "Cnt: %d", cnt);
     }
+
 }
 
 /**

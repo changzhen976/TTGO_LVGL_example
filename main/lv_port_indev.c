@@ -25,16 +25,14 @@
  **********************/
 
 static void keypad_init(void);
-static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data);
+static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
 static uint32_t keypad_get_key(void);
-
 
 /**********************
  *  STATIC VARIABLES
  **********************/
 
-lv_indev_t * indev_keypad;
-
+lv_indev_t *indev_keypad;
 
 /**********************
  *      MACROS
@@ -61,14 +59,6 @@ void lv_port_indev_init(void)
     static lv_indev_drv_t indev_drv;
 
     /*------------------
-     * Touchpad
-     * -----------------*/
-
-    /*------------------
-     * Mouse
-     * -----------------*/
-
-    /*------------------
      * Keypad
      * -----------------*/
 
@@ -85,28 +75,11 @@ void lv_port_indev_init(void)
      *add objects to the group with `lv_group_add_obj(group, obj)`
      *and assign this input device to group to navigate in it:
      *`lv_indev_set_group(indev_keypad, group);`*/
-
-    /*------------------
-     * Encoder
-     * -----------------*/
-
-    /*------------------
-     * Button
-     * -----------------*/
 }
 
 /**********************
  *   STATIC FUNCTIONS
  **********************/
-
-/*------------------
- * Touchpad
- * -----------------*/
-
-
-/*------------------
- * Mouse
- * -----------------*/
 
 /*------------------
  * Keypad
@@ -118,12 +91,15 @@ static void keypad_init(void)
     /*Your code comes here*/
     gpio_reset_pin(GPIO_NUM_35);
     gpio_set_direction(GPIO_NUM_35, GPIO_MODE_INPUT);
-    ESP_LOGI("GPIO", "Initialize GPIO OK");
 
+    gpio_reset_pin(GPIO_NUM_0);
+    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+
+    ESP_LOGI("GPIO", "Initialize GPIO OK");
 }
 
 /*Will be called by the library to read the mouse*/
-static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
+static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 {
     static uint32_t last_key = 0;
 
@@ -132,33 +108,36 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 
     /*Get whether the a key is pressed and save the pressed key*/
     uint32_t act_key = keypad_get_key();
-    
-    if(act_key != 0) {
+
+    if (act_key != 0)
+    {
         // ESP_LOGI("GPIO", "Get GPIO State ");
         data->state = LV_INDEV_STATE_PR;
 
         /*Translate the keys to LVGL control characters according to your key definitions*/
-        switch(act_key) {
-            case 1:
-                act_key = LV_KEY_ENTER;
-                break;
-            case 2:
-                act_key = LV_KEY_PREV;
-                break;
-            case 3:
-                act_key = LV_KEY_LEFT;
-                break;
-            case 4:
-                act_key = LV_KEY_RIGHT;
-                break;
-            case 5:
-                act_key = LV_KEY_ENTER;
-                break;
+        switch (act_key)
+        {
+        case 1:
+            act_key = LV_KEY_ENTER;
+            break;
+        case 2:
+            act_key = LV_KEY_PREV;
+            break;
+        case 3:
+            act_key = LV_KEY_LEFT;
+            break;
+        case 4:
+            act_key = LV_KEY_RIGHT;
+            break;
+        case 5:
+            act_key = LV_KEY_ENTER;
+            break;
         }
 
         last_key = act_key;
     }
-    else {
+    else
+    {
         data->state = LV_INDEV_STATE_REL;
     }
 
@@ -169,8 +148,16 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 static uint32_t keypad_get_key(void)
 {
     /*Your code comes here*/
-    
-    return gpio_get_level(GPIO_NUM_35)?false:true;
+    if (gpio_get_level(GPIO_NUM_35) == 0)
+    {
+        return 3;
+    }
+
+    if (gpio_get_level(GPIO_NUM_0) == 0)
+    {
+        return 4;
+    }
+    return 0;
 }
 
 /*------------------
@@ -180,7 +167,6 @@ static uint32_t keypad_get_key(void)
 /*------------------
  * Button
  * -----------------*/
-
 
 #else /*Enable this file at the top*/
 

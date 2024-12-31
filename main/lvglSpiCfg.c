@@ -210,9 +210,9 @@ void LVGL_SPI_initFunc()
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, true));
 #endif
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, true));
-    esp_lcd_panel_swap_xy(panel_handle, true);
-    ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, true, false));
-    ESP_ERROR_CHECK(esp_lcd_panel_set_gap(panel_handle, 40, 53));
+    ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, false));
+    ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, false, false));
+    ESP_ERROR_CHECK(esp_lcd_panel_set_gap(panel_handle, 52, 40));
 
     // user can flush pre-defined pattern to the screen before we turn on the screen or backlight
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));

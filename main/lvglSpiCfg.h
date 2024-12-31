@@ -53,8 +53,8 @@ extern void example_demo_ui(lv_disp_t *disp);
 
 // The pixel number in horizontal and vertical
 #if CONFIG_EXAMPLE_LCD_CONTROLLER_ST7789
-#define EXAMPLE_LCD_H_RES 240
-#define EXAMPLE_LCD_V_RES 136
+#define EXAMPLE_LCD_H_RES 136 //240
+#define EXAMPLE_LCD_V_RES 240 //136
 #elif CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
 #define EXAMPLE_LCD_H_RES 240
 #define EXAMPLE_LCD_V_RES 240

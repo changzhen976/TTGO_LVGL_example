@@ -25,14 +25,16 @@ enum Button_IDs {
 struct Button btnRight;
 struct Button btnLeft;
 
-static uint8_t btnR_Pressed = 0;
-static uint8_t btnL_Pressed = 0;
+static uint8_t btnR_Clicked = 0;
+static uint8_t btnL_Clicked = 0;
+static uint8_t btnR_Double_Clicked = 0;
+static uint8_t btnL_Double_Clicked = 0;
 
 uint8_t read_button_GPIO(uint8_t button_id);
-void BTNP_PRESS_DOWN_Handler(void* btn);
-void BTNP_PRESS_UP_Handler(void* btn);
-void BTNM_PRESS_DOWN_Handler(void* btn);
-void BTNM_PRESS_UP_Handler(void* btn);
+void BTNR_SingleClick_Handler(void* btn);
+void BTNR_DoubleClike_Handler(void* btn);
+void BTNL_SingleClick_Handler(void* btn);
+void BTNL_DoubleClike_Handler(void* btn);
 
 /**********************
  *      TYPEDEFS
@@ -119,10 +121,10 @@ static void keypad_init(void)
     button_init(&btnRight, read_button_GPIO, 0, btnRight_id);
 	button_init(&btnLeft, read_button_GPIO, 0, btnLeft_id);
 
-    button_attach(&btnRight,     PRESS_DOWN,       BTNP_PRESS_DOWN_Handler);
-    button_attach(&btnRight,     PRESS_UP,       BTNP_PRESS_UP_Handler);
-    button_attach(&btnLeft,    PRESS_DOWN,       BTNM_PRESS_DOWN_Handler);
-    button_attach(&btnLeft,     PRESS_UP,       BTNP_PRESS_UP_Handler);
+    button_attach(&btnRight,     SINGLE_CLICK,       BTNR_SingleClick_Handler);
+    button_attach(&btnRight,     DOUBLE_CLICK,       BTNR_DoubleClike_Handler);
+    button_attach(&btnLeft,    SINGLE_CLICK,       BTNL_SingleClick_Handler);
+    button_attach(&btnLeft,     DOUBLE_CLICK,       BTNR_DoubleClike_Handler);
 
     button_start(&btnRight);
 	button_start(&btnLeft);
@@ -143,18 +145,18 @@ uint8_t read_button_GPIO(uint8_t button_id)
 	}
 }
 
-void BTNP_PRESS_DOWN_Handler(void* btn){
-    btnR_Pressed = 1;
+void BTNR_SingleClick_Handler(void* btn){
+    btnR_Clicked = 1;
 }
-void BTNM_PRESS_DOWN_Handler(void* btn){
-    btnL_Pressed = 1;
+void BTNL_SingleClick_Handler(void* btn){
+    btnL_Clicked = 1;
 }
 
-void BTNP_PRESS_UP_Handler(void* btn){
-    btnR_Pressed = 0;
+void BTNR_DoubleClike_Handler(void* btn){
+    btnR_Double_Clicked = 1;
 }
-void BTNM_PRESS_UP_Handler(void* btn){
-    btnL_Pressed = 0;
+void BTNL_DoubleClike_Handler(void* btn){
+    btnL_Double_Clicked = 1;
 }
 
 void Multi_btn_timer_5ms(){
@@ -211,28 +213,57 @@ static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 /*Get the currently being pressed key.  0 if no key is pressed*/
 static uint32_t keypad_get_key(void)
 {
-    /*Your code comes here*/
-    if (btnR_Pressed)
-    {
-        btnR_Pressed = 0;
-        return 3;
+    // get state from btn cb function
+    if(btnL_Clicked){
+        btnL_Clicked = 0;
+        ESP_LOGI("Single Click", "L !!");
+    }
+    if(btnR_Clicked){
+        btnR_Clicked = 0;
+        ESP_LOGI("Single Click", "R !!");
+    }
+    if(btnL_Double_Clicked){
+        btnL_Double_Clicked = 0;
+        ESP_LOGI("Double Click", "L !!");
+    }
+    if(btnR_Double_Clicked){
+        btnR_Double_Clicked = 0;
+        ESP_LOGI("Double Click", "R !!");
     }
 
-    if (btnL_Pressed)
-    {
-        btnL_Pressed = 0;
-        return 4;
+    // get botton event directly
+    static uint8_t btnR_EventK1 = (uint8_t)NONE_PRESS;
+    static uint8_t btnL_EventK1 = (uint8_t)NONE_PRESS;
+    if(btnRight.event != btnR_EventK1){
+        // btn right state changed.
+        btnR_EventK1 = btnRight.event;
+        switch (btnRight.event)
+        {
+        case PRESS_DOWN:
+            return 3;
+            break;
+        default:
+            // return 0;
+            break;
+        }
     }
+
+    if(btnLeft.event != btnL_EventK1){
+        // btn left state changed.
+        btnL_EventK1 = btnLeft.event;
+        switch (btnLeft.event)
+        {
+        case PRESS_DOWN:
+            return 4;
+            break;
+        default:
+            // return 0;
+            break;
+        }
+    }
+
     return 0;
 }
-
-/*------------------
- * Encoder
- * -----------------*/
-
-/*------------------
- * Button
- * -----------------*/
 
 #else /*Enable this file at the top*/
 

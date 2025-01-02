@@ -33,7 +33,7 @@ static void btn_event_cb(lv_event_t * e)
  * Create a button with a label and react on click event.
  */
 //example_lvgl_demo_ui
-void example_demo_ui(lv_disp_t *disp)
+void example_demo_ui()
 {
     lv_group_t *group = lv_group_create();
     lv_group_set_default(group);

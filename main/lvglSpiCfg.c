@@ -292,14 +292,16 @@ void LVGL_SPI_initFunc()
     ESP_LOGI(LvglTAG, "Create LVGL task");
     xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
+}
+
+void LVGL_SPI_Display_Widget(uint8_t index){
     ESP_LOGI("Main", "Display LVGL Meter Widget");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (example_lvgl_lock(-1)) {
-        example_demo_ui(disp);
+        example_demo_ui();
         // Release the mutex
         example_lvgl_unlock();
     }
-
 }
     
 

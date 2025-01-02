@@ -29,7 +29,7 @@
 #endif
 
 
-extern void example_demo_ui(lv_disp_t *disp);
+extern void example_demo_ui();
 
 
 
@@ -75,3 +75,4 @@ esp_lcd_touch_handle_t tp = NULL;
 #endif
 
 void LVGL_SPI_initFunc();
+void LVGL_SPI_Display_Widget(uint8_t index);

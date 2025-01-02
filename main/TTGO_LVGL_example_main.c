@@ -24,12 +24,13 @@
 
 // static const char *TAG = "example";
 
-extern void example_demo_ui(lv_disp_t *disp);
+extern void example_demo_ui();
 
 void app_main(void)
 {
     LVGL_SPI_initFunc();
 
+    LVGL_SPI_Display_Widget(0);
 
 
     while (1)

@@ -18,15 +18,15 @@
 
 /* Multi Button */
 enum Button_IDs {
-	btnPlus_id,
-	btnMinus_id,
+	btnRight_id,
+	btnLeft_id,
 };
 
-struct Button btnPlus;
-struct Button btnMinus;
+struct Button btnRight;
+struct Button btnLeft;
 
-static uint8_t btnP_Pressed = 0;
-static uint8_t btnM_Pressed = 0;
+static uint8_t btnR_Pressed = 0;
+static uint8_t btnL_Pressed = 0;
 
 uint8_t read_button_GPIO(uint8_t button_id);
 void BTNP_PRESS_DOWN_Handler(void* btn);
@@ -116,16 +116,16 @@ static void keypad_init(void)
 
     /*---- Muilt Button Init ----*/
 
-    button_init(&btnPlus, read_button_GPIO, 0, btnPlus_id);
-	button_init(&btnMinus, read_button_GPIO, 0, btnMinus_id);
+    button_init(&btnRight, read_button_GPIO, 0, btnRight_id);
+	button_init(&btnLeft, read_button_GPIO, 0, btnLeft_id);
 
-    button_attach(&btnPlus,     PRESS_DOWN,       BTNP_PRESS_DOWN_Handler);
-    button_attach(&btnPlus,     PRESS_UP,       BTNP_PRESS_UP_Handler);
-    button_attach(&btnMinus,    PRESS_DOWN,       BTNM_PRESS_DOWN_Handler);
-    button_attach(&btnMinus,     PRESS_UP,       BTNP_PRESS_UP_Handler);
+    button_attach(&btnRight,     PRESS_DOWN,       BTNP_PRESS_DOWN_Handler);
+    button_attach(&btnRight,     PRESS_UP,       BTNP_PRESS_UP_Handler);
+    button_attach(&btnLeft,    PRESS_DOWN,       BTNM_PRESS_DOWN_Handler);
+    button_attach(&btnLeft,     PRESS_UP,       BTNP_PRESS_UP_Handler);
 
-    button_start(&btnPlus);
-	button_start(&btnMinus);
+    button_start(&btnRight);
+	button_start(&btnLeft);
 }
 
 
@@ -134,9 +134,9 @@ uint8_t read_button_GPIO(uint8_t button_id)
 	// you can share the GPIO read function with multiple Buttons
 	switch(button_id)
 	{
-		case btnPlus_id:
+		case btnRight_id:
 			return gpio_get_level(GPIO_NUM_35);
-		case btnMinus_id:
+		case btnLeft_id:
 			return gpio_get_level(GPIO_NUM_0);
 		default:
 			return 0;
@@ -144,17 +144,17 @@ uint8_t read_button_GPIO(uint8_t button_id)
 }
 
 void BTNP_PRESS_DOWN_Handler(void* btn){
-    btnP_Pressed = 1;
+    btnR_Pressed = 1;
 }
 void BTNM_PRESS_DOWN_Handler(void* btn){
-    btnM_Pressed = 1;
+    btnL_Pressed = 1;
 }
 
 void BTNP_PRESS_UP_Handler(void* btn){
-    btnP_Pressed = 0;
+    btnR_Pressed = 0;
 }
 void BTNM_PRESS_UP_Handler(void* btn){
-    btnM_Pressed = 0;
+    btnL_Pressed = 0;
 }
 
 void Multi_btn_timer_5ms(){
@@ -212,15 +212,15 @@ static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 static uint32_t keypad_get_key(void)
 {
     /*Your code comes here*/
-    if (btnP_Pressed)
+    if (btnR_Pressed)
     {
-        btnP_Pressed = 0;
+        btnR_Pressed = 0;
         return 3;
     }
 
-    if (btnM_Pressed)
+    if (btnL_Pressed)
     {
-        btnM_Pressed = 0;
+        btnL_Pressed = 0;
         return 4;
     }
     return 0;

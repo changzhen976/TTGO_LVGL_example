@@ -21,6 +21,7 @@
 #include "lv_port_indev.h"
 
 #include "multi_button.h"
+#include "wifiCfg.h"
 
 // static const char *TAG = "example";
 
@@ -28,10 +29,13 @@ extern void example_demo_ui();
 
 void app_main(void)
 {
+    ESP_ERROR_CHECK(nvs_flash_init());
+    
     LVGL_SPI_initFunc();
 
     LVGL_SPI_Display_Widget(0);
 
+    wifi_init_sta();
 
     while (1)
     {

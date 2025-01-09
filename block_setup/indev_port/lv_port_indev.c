@@ -109,11 +109,11 @@ void lv_port_indev_init(void)
 static void keypad_init(void)
 {
     /* GPIO Init */
-    gpio_reset_pin(GPIO_NUM_35);
-    gpio_set_direction(GPIO_NUM_35, GPIO_MODE_INPUT);
+    gpio_reset_pin(BUTTON_RIGHT_GPIO);
+    gpio_set_direction(BUTTON_RIGHT_GPIO, GPIO_MODE_INPUT);
 
-    gpio_reset_pin(GPIO_NUM_0);
-    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+    gpio_reset_pin(BUTTON_LEFT_GPIO);
+    gpio_set_direction(BUTTON_LEFT_GPIO, GPIO_MODE_INPUT);
     ESP_LOGI("GPIO", "Initialize GPIO OK");
 
     /*---- Muilt Button Init ----*/
@@ -124,7 +124,7 @@ static void keypad_init(void)
     button_attach(&btnRight,     SINGLE_CLICK,       BTNR_SingleClick_Handler);
     button_attach(&btnRight,     DOUBLE_CLICK,       BTNR_DoubleClike_Handler);
     button_attach(&btnLeft,    SINGLE_CLICK,       BTNL_SingleClick_Handler);
-    button_attach(&btnLeft,     DOUBLE_CLICK,       BTNR_DoubleClike_Handler);
+    button_attach(&btnLeft,     DOUBLE_CLICK,       BTNL_DoubleClike_Handler);
 
     button_start(&btnRight);
 	button_start(&btnLeft);
@@ -137,9 +137,9 @@ uint8_t read_button_GPIO(uint8_t button_id)
 	switch(button_id)
 	{
 		case btnRight_id:
-			return gpio_get_level(GPIO_NUM_35);
+			return gpio_get_level(BUTTON_RIGHT_GPIO);
 		case btnLeft_id:
-			return gpio_get_level(GPIO_NUM_0);
+			return gpio_get_level(BUTTON_LEFT_GPIO);
 		default:
 			return 0;
 	}
@@ -184,16 +184,16 @@ static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
         switch (act_key)
         {
         case 1:
-            act_key = LV_KEY_ENTER;
+            act_key = LV_KEY_NEXT;
             break;
         case 2:
             act_key = LV_KEY_PREV;
             break;
         case 3:
-            act_key = LV_KEY_LEFT;
+            act_key = LV_KEY_ENTER;
             break;
         case 4:
-            act_key = LV_KEY_RIGHT;
+            act_key = LV_KEY_BACKSPACE;
             break;
         case 5:
             act_key = LV_KEY_ENTER;
@@ -217,50 +217,54 @@ static uint32_t keypad_get_key(void)
     if(btnL_Clicked){
         btnL_Clicked = 0;
         ESP_LOGI("Single Click", "L !!");
+        return 2;
     }
     if(btnR_Clicked){
         btnR_Clicked = 0;
         ESP_LOGI("Single Click", "R !!");
+        return 1;
     }
     if(btnL_Double_Clicked){
         btnL_Double_Clicked = 0;
         ESP_LOGI("Double Click", "L !!");
+        return 4;
     }
     if(btnR_Double_Clicked){
         btnR_Double_Clicked = 0;
         ESP_LOGI("Double Click", "R !!");
+        return 5;
     }
 
-    // get botton event directly
-    static uint8_t btnR_EventK1 = (uint8_t)NONE_PRESS;
-    static uint8_t btnL_EventK1 = (uint8_t)NONE_PRESS;
-    if(btnRight.event != btnR_EventK1){
-        // btn right state changed.
-        btnR_EventK1 = btnRight.event;
-        switch (btnRight.event)
-        {
-        case PRESS_DOWN:
-            return 3;
-            break;
-        default:
-            // return 0;
-            break;
-        }
-    }
+    // // get botton event directly
+    // static uint8_t btnR_EventK1 = (uint8_t)NONE_PRESS;
+    // static uint8_t btnL_EventK1 = (uint8_t)NONE_PRESS;
+    // if(btnRight.event != btnR_EventK1){
+    //     // btn right state changed.
+    //     btnR_EventK1 = btnRight.event;
+    //     switch (btnRight.event)
+    //     {
+    //     case PRESS_DOWN:
+    //         return 3;
+    //         break;
+    //     default:
+    //         // return 0;
+    //         break;
+    //     }
+    // }
 
-    if(btnLeft.event != btnL_EventK1){
-        // btn left state changed.
-        btnL_EventK1 = btnLeft.event;
-        switch (btnLeft.event)
-        {
-        case PRESS_DOWN:
-            return 4;
-            break;
-        default:
-            // return 0;
-            break;
-        }
-    }
+    // if(btnLeft.event != btnL_EventK1){
+    //     // btn left state changed.
+    //     btnL_EventK1 = btnLeft.event;
+    //     switch (btnLeft.event)
+    //     {
+    //     case PRESS_DOWN:
+    //         return 4;
+    //         break;
+    //     default:
+    //         // return 0;
+    //         break;
+    //     }
+    // }
 
     return 0;
 }

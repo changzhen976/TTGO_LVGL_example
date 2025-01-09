@@ -28,6 +28,16 @@ extern "C" {
 /*********************
  *      DEFINES
  *********************/
+#ifdef CONFIG_EXAMPLE_LILIGO_T_QT
+#define BUTTON_RIGHT_GPIO GPIO_NUM_47
+#define BUTTON_LEFT_GPIO GPIO_NUM_0
+#endif
+
+#ifdef CONFIG_EXAMPLE_LILIGO_T_DISPLAY
+#define BUTTON_RIGHT_GPIO GPIO_NUM_35
+#define BUTTON_LEFT_GPIO GPIO_NUM_0
+#endif
+
 
 /**********************
  *      TYPEDEFS

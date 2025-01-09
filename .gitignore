@@ -4,3 +4,4 @@ build/
 .devcontainer/
 dependencies.lock
 sdkconfig
+sdkconfig.old

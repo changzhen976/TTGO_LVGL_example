@@ -63,7 +63,8 @@ void example_demo_ui()
 {
     lv_group_t *group = lv_group_create();
     lv_group_set_default(group);
-    lv_indev_set_group(indev_keypad, group);
+    // lv_indev_set_group(indev_keypad, group);
+    lv_indev_set_group(indev_encoder, group);
     // lv_group_focus_obj(group);
     // lv_group_set_editing(group, true);
 

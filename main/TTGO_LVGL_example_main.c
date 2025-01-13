@@ -41,6 +41,7 @@ void app_main(void)
     {
         vTaskDelay(pdMS_TO_TICKS(10));
         Multi_btn_timer_5ms();
+        Encoder_timer_5ms();
     }
     
 }

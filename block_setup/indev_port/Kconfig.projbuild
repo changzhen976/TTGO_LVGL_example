@@ -1,0 +1,7 @@
+menu "Example InDev Configuration"
+
+    config EXAMPLE_ENCODER_ENABLE
+        bool "if Enable Encoder"
+        default y
+
+endmenu

@@ -48,11 +48,19 @@ static void keypad_init(void);
 static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
 static uint32_t keypad_get_key(void);
 
+static void encoder_int();
+static void encoder_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
+QueueHandle_t queue = NULL;
+static pcnt_unit_handle_t pcnt_unit = NULL;
+static int32_t encoder_diff;
+static lv_indev_state_t encoder_state;
+
 /**********************
  *  STATIC VARIABLES
  **********************/
 
 lv_indev_t *indev_keypad;
+lv_indev_t *indev_encoder;
 
 /**********************
  *      MACROS
@@ -84,12 +92,19 @@ void lv_port_indev_init(void)
 
     /*Initialize your keypad or keyboard if you have*/
     keypad_init();
+    encoder_int();
 
     /*Register a keypad input device*/
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_KEYPAD;
     indev_drv.read_cb = keypad_read;
     indev_keypad = lv_indev_drv_register(&indev_drv);
+
+    /*Register a encoder input device*/
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type = LV_INDEV_TYPE_ENCODER;
+    indev_drv.read_cb = encoder_read;
+    indev_encoder = lv_indev_drv_register(&indev_drv);
 
     /*Later you should create group(s) with `lv_group_t * group = lv_group_create()`,
      *add objects to the group with `lv_group_add_obj(group, obj)`
@@ -267,6 +282,126 @@ static uint32_t keypad_get_key(void)
     // }
 
     return 0;
+}
+
+
+static bool example_pcnt_on_reach(pcnt_unit_handle_t unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t high_task_wakeup;
+    QueueHandle_t queue = (QueueHandle_t)user_ctx;
+    // send event data to queue, from this interrupt callback
+    xQueueSendFromISR(queue, &(edata->watch_point_value), &high_task_wakeup);
+    return (high_task_wakeup == pdTRUE);
+}
+
+static void encoder_int()
+{
+    ESP_LOGI("Encoder Init", "install pcnt unit");
+    pcnt_unit_config_t unit_config = {
+        .high_limit = EXAMPLE_PCNT_HIGH_LIMIT,
+        .low_limit = EXAMPLE_PCNT_LOW_LIMIT,
+    };
+    
+    ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit));
+
+    ESP_LOGI("Encoder Init", "set glitch filter");
+    pcnt_glitch_filter_config_t filter_config = {
+        .max_glitch_ns = 1000,
+    };
+    ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit, &filter_config));
+
+    ESP_LOGI("Encoder Init", "install pcnt channels");
+    pcnt_chan_config_t chan_a_config = {
+        .edge_gpio_num = ENCODER_A_GPIO,
+        .level_gpio_num = ENCODER_B_GPIO,
+    };
+    pcnt_channel_handle_t pcnt_chan_a = NULL;
+    ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_a_config, &pcnt_chan_a));
+    pcnt_chan_config_t chan_b_config = {
+        .edge_gpio_num = ENCODER_B_GPIO,
+        .level_gpio_num = ENCODER_A_GPIO,
+    };
+    pcnt_channel_handle_t pcnt_chan_b = NULL;
+    ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_b_config, &pcnt_chan_b));
+
+    ESP_LOGI("Encoder Init", "set edge and level actions for pcnt channels");
+    ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_chan_a, PCNT_CHANNEL_EDGE_ACTION_DECREASE, PCNT_CHANNEL_EDGE_ACTION_INCREASE));
+    ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_chan_a, PCNT_CHANNEL_LEVEL_ACTION_KEEP, PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
+    ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_chan_b, PCNT_CHANNEL_EDGE_ACTION_INCREASE, PCNT_CHANNEL_EDGE_ACTION_DECREASE));
+    ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_chan_b, PCNT_CHANNEL_LEVEL_ACTION_KEEP, PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
+
+    ESP_LOGI("Encoder Init", "add watch points and register callbacks");
+    int watch_points[] = {EXAMPLE_PCNT_LOW_LIMIT, -50, 0, 50, EXAMPLE_PCNT_HIGH_LIMIT};
+    for (size_t i = 0; i < sizeof(watch_points) / sizeof(watch_points[0]); i++) {
+        ESP_ERROR_CHECK(pcnt_unit_add_watch_point(pcnt_unit, watch_points[i]));
+    }
+    pcnt_event_callbacks_t cbs = {
+        .on_reach = example_pcnt_on_reach,
+    };
+    queue = xQueueCreate(10, sizeof(int));
+    ESP_ERROR_CHECK(pcnt_unit_register_event_callbacks(pcnt_unit, &cbs, queue));
+
+    ESP_LOGI("Encoder Init", "enable pcnt unit");
+    ESP_ERROR_CHECK(pcnt_unit_enable(pcnt_unit));
+    ESP_LOGI("Encoder Init", "clear pcnt unit");
+    ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+    ESP_LOGI("Encoder Init", "start pcnt unit");
+    ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
+
+}
+
+static void encoder_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
+{
+    data->enc_diff = encoder_diff;
+    data->state = encoder_state;
+
+    encoder_diff = 0;
+}
+
+void Encoder_timer_5ms()
+{
+    static int event_count = 0;
+    static int pulse_count = 0;
+    static int pulse_count_K1 = 0;
+
+    if (xQueueReceive(queue, &event_count, 0)) {
+        ESP_LOGI("TAG", "Watch point event, count: %d", event_count);
+    }
+
+    ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
+    // ESP_LOGI("TAG", "Pulse count: %d", pulse_count);
+
+    if(
+        (pulse_count - pulse_count_K1 > EXAMPLE_ENCODER_DIFF_STEP/* Crt Value > Prev Value */ 
+        && pulse_count - pulse_count_K1 < EXAMPLE_PCNT_HIGH_LIMIT / 2 )/* in case low limit overflow */ 
+        ||
+        (pulse_count - pulse_count_K1 > EXAMPLE_ENCODER_DIFF_STEP - EXAMPLE_PCNT_HIGH_LIMIT/* High limit overflow */ 
+        && pulse_count - pulse_count_K1 < -1 * (EXAMPLE_PCNT_HIGH_LIMIT / 2 ) /* make sure high limit */) 
+        ||
+        pulse_count - pulse_count_K1 > EXAMPLE_ENCODER_DIFF_STEP + EXAMPLE_PCNT_HIGH_LIMIT/* in case like '-99 -> -1 -> +2 -> +4 ...' */
+        )
+    {
+        encoder_diff++;
+        pulse_count_K1 = pulse_count;
+        ESP_LOGI("Encoder Plus", "Pulse count: %d", pulse_count);
+    }else if(
+        (pulse_count - pulse_count_K1 < -EXAMPLE_ENCODER_DIFF_STEP/* Crt Value < Prev Value */ 
+        && pulse_count - pulse_count_K1 > EXAMPLE_PCNT_LOW_LIMIT / 2 /* in case high limit overflow */) 
+        ||
+        (pulse_count - pulse_count_K1 < -EXAMPLE_ENCODER_DIFF_STEP - EXAMPLE_PCNT_LOW_LIMIT/* low limit overflow */ 
+        && pulse_count - pulse_count_K1 > -1 * (EXAMPLE_PCNT_LOW_LIMIT / 2 ) /* make sure high limit */) 
+        ||
+        pulse_count - pulse_count_K1 < -EXAMPLE_ENCODER_DIFF_STEP + EXAMPLE_PCNT_LOW_LIMIT/* in case like '+99 -> +1 -> -2 -> -4 ...' */
+        )
+    {
+        encoder_diff--;
+        pulse_count_K1 = pulse_count;
+        ESP_LOGI("Encoder Minus", "Pulse count: %d", pulse_count);
+    }
+
+    // encoder_diff = 0;
+    encoder_state = LV_INDEV_STATE_REL;
+    
 }
 
 #else /*Enable this file at the top*/

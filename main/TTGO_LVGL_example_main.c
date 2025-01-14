@@ -22,6 +22,7 @@
 
 #include "multi_button.h"
 #include "wifiCfg.h"
+#include "ui.h"
 
 // static const char *TAG = "example";
 
@@ -33,7 +34,8 @@ void app_main(void)
     
     LVGL_SPI_initFunc();
 
-    LVGL_SPI_Display_Widget(0);
+    // LVGL_SPI_Display_Widget(0);
+    ui_init();
 
     wifi_init_sta();
 

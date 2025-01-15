@@ -48,19 +48,24 @@ static void keypad_init(void);
 static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
 static uint32_t keypad_get_key(void);
 
+#ifdef CONFIG_EXAMPLE_ENCODER_ENABLE
 static void encoder_int();
 static void encoder_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
 QueueHandle_t queue = NULL;
 static pcnt_unit_handle_t pcnt_unit = NULL;
 static int32_t encoder_diff;
 static lv_indev_state_t encoder_state;
+#endif
 
 /**********************
  *  STATIC VARIABLES
  **********************/
 
 lv_indev_t *indev_keypad;
+
+#ifdef CONFIG_EXAMPLE_ENCODER_ENABLE
 lv_indev_t *indev_encoder;
+#endif
 
 /**********************
  *      MACROS
@@ -92,7 +97,9 @@ void lv_port_indev_init(void)
 
     /*Initialize your keypad or keyboard if you have*/
     keypad_init();
+#ifdef CONFIG_EXAMPLE_ENCODER_ENABLE
     encoder_int();
+#endif
 
     /*Register a keypad input device*/
     lv_indev_drv_init(&indev_drv);
@@ -101,10 +108,12 @@ void lv_port_indev_init(void)
     indev_keypad = lv_indev_drv_register(&indev_drv);
 
     /*Register a encoder input device*/
+#ifdef CONFIG_EXAMPLE_ENCODER_ENABLE
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_ENCODER;
     indev_drv.read_cb = encoder_read;
     indev_encoder = lv_indev_drv_register(&indev_drv);
+#endif
 
     /*Later you should create group(s) with `lv_group_t * group = lv_group_create()`,
      *add objects to the group with `lv_group_add_obj(group, obj)`
@@ -284,7 +293,7 @@ static uint32_t keypad_get_key(void)
     return 0;
 }
 
-
+#ifdef CONFIG_EXAMPLE_ENCODER_ENABLE
 static bool example_pcnt_on_reach(pcnt_unit_handle_t unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
     BaseType_t high_task_wakeup;
@@ -403,7 +412,7 @@ void Encoder_timer_5ms()
     encoder_state = LV_INDEV_STATE_REL;
     
 }
-
+#endif
 #else /*Enable this file at the top*/
 
 /*This dummy typedef exists purely to silence -Wpedantic.*/

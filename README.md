@@ -2,7 +2,7 @@
 
 > Device: LilyGO T-Display/T-QT
 > ESP-IDF v6.0.2
-> LVGL v8.3.11
+> LVGL v9.5.0
 
 - [x]  display demo ui
 - [x]  port button with `kaypad` in `lv_port_indev`

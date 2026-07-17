@@ -45,12 +45,12 @@ void BTNL_DoubleClike_Handler(void* btn);
  **********************/
 
 static void keypad_init(void);
-static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
+static void keypad_read(lv_indev_t *indev, lv_indev_data_t *data);
 static uint32_t keypad_get_key(void);
 
 #ifdef CONFIG_EXAMPLE_ENCODER_ENABLE
 static void encoder_int();
-static void encoder_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
+static void encoder_read(lv_indev_t *indev, lv_indev_data_t *data);
 QueueHandle_t queue = NULL;
 static pcnt_unit_handle_t pcnt_unit = NULL;
 static int32_t encoder_diff;
@@ -89,8 +89,6 @@ void lv_port_indev_init(void)
      *  You should shape them according to your hardware
      */
 
-    static lv_indev_drv_t indev_drv;
-
     /*------------------
      * Keypad
      * -----------------*/
@@ -102,17 +100,15 @@ void lv_port_indev_init(void)
 #endif
 
     /*Register a keypad input device*/
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    indev_drv.read_cb = keypad_read;
-    indev_keypad = lv_indev_drv_register(&indev_drv);
+    indev_keypad = lv_indev_create();
+    lv_indev_set_type(indev_keypad, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(indev_keypad, keypad_read);
 
     /*Register a encoder input device*/
 #ifdef CONFIG_EXAMPLE_ENCODER_ENABLE
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_ENCODER;
-    indev_drv.read_cb = encoder_read;
-    indev_encoder = lv_indev_drv_register(&indev_drv);
+    indev_encoder = lv_indev_create();
+    lv_indev_set_type(indev_encoder, LV_INDEV_TYPE_ENCODER);
+    lv_indev_set_read_cb(indev_encoder, encoder_read);
 #endif
 
     /*Later you should create group(s) with `lv_group_t * group = lv_group_create()`,
@@ -189,8 +185,9 @@ void Multi_btn_timer_5ms(){
 
 
 /*Will be called by the library to read the mouse*/
-static void keypad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
+static void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
+    (void)indev;
     static uint32_t last_key = 0;
 
     /*Get the current x and y coordinates*/
@@ -359,8 +356,9 @@ static void encoder_int()
 
 }
 
-static void encoder_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
+static void encoder_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
+    (void)indev;
     data->enc_diff = encoder_diff;
     data->state = encoder_state;
 

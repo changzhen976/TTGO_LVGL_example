@@ -1,4 +1,4 @@
 dependencies:
-  espressif/esp_lcd_gc9a01: "==2.0.0"
+  espressif/esp_lcd_gc9a01: "^2.0.4"
   idf: ">=4.4"
   lvgl/lvgl: "~8.3.11"

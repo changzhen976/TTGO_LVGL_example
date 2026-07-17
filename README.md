@@ -1,7 +1,7 @@
 # ESP-IDF LVGL Demo for TTGO board
 
 > Device: LilyGO T-Display/T-QT
-> ESP-IDF v5.2.1
+> ESP-IDF v6.0.2
 > LVGL v8.3.11
 
 - [x]  display demo ui

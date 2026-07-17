@@ -166,11 +166,3 @@ void LVGL_SPI_initFunc()
     xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
 }
-
-void LVGL_SPI_Display_Widget(uint8_t index){
-    ESP_LOGI("Main", "Display LVGL Meter Widget");
-    if (example_lvgl_lock(-1)) {
-        example_demo_ui();
-        example_lvgl_unlock();
-    }
-}

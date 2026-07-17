@@ -20,7 +20,7 @@
 
 
 
-extern void example_demo_ui();
+
 
 // Using SPI2 in the example
 #define LCD_HOST SPI2_HOST
@@ -103,4 +103,3 @@ extern void example_demo_ui();
 
 
 void LVGL_SPI_initFunc();
-void LVGL_SPI_Display_Widget(uint8_t index);

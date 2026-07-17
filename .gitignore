@@ -5,3 +5,9 @@ build/
 dependencies.lock
 sdkconfig
 sdkconfig.old
+
+# Editor / tooling caches
+.cache/
+.clangd
+.vim/
+compile_commands.json

@@ -103,3 +103,6 @@
 
 
 void LVGL_SPI_initFunc();
+
+bool example_lvgl_lock(int timeout_ms);
+void example_lvgl_unlock(void);

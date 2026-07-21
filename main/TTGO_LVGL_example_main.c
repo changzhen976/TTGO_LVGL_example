@@ -31,6 +31,17 @@ void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(10));
         Multi_btn_timer_5ms();
         Encoder_timer_5ms();
+
+        /* 运算逻辑: 每 100ms 读 slider, 透传给 arc */
+        static int cnt = 0;
+        if (++cnt >= 10) {
+            cnt = 0;
+            if (example_lvgl_lock(100)) {
+                int32_t v = ui_get_slider_value();
+                ui_set_arc_value(v);
+                example_lvgl_unlock();
+            }
+        }
     }
     
 }

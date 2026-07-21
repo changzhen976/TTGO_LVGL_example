@@ -17,24 +17,24 @@
  *********************/
 
 /* Multi Button */
+typedef struct {
+	uint8_t single_clicked;
+	uint8_t double_clicked;
+} btn_state_t;
+
 enum Button_IDs {
 	btnRight_id,
 	btnLeft_id,
 };
 
-struct Button btnRight;
-struct Button btnLeft;
-
-static uint8_t btnR_Clicked = 0;
-static uint8_t btnL_Clicked = 0;
-static uint8_t btnR_Double_Clicked = 0;
-static uint8_t btnL_Double_Clicked = 0;
+Button btnRight;
+Button btnLeft;
 
 uint8_t read_button_GPIO(uint8_t button_id);
-void BTNR_SingleClick_Handler(void* btn);
-void BTNR_DoubleClike_Handler(void* btn);
-void BTNL_SingleClick_Handler(void* btn);
-void BTNL_DoubleClike_Handler(void* btn);
+void BTNR_SingleClick_Handler(Button* btn, void* user_data);
+void BTNR_DoubleClike_Handler(Button* btn, void* user_data);
+void BTNL_SingleClick_Handler(Button* btn, void* user_data);
+void BTNL_DoubleClike_Handler(Button* btn, void* user_data);
 
 /**********************
  *      TYPEDEFS
@@ -138,13 +138,17 @@ static void keypad_init(void)
 
     /*---- Muilt Button Init ----*/
 
+    /* 函数内静态局部状态(经 user_data 绑定到按钮,替代文件级全局旗标) */
+    static btn_state_t btnR_state = {0};
+    static btn_state_t btnL_state = {0};
+
     button_init(&btnRight, read_button_GPIO, 0, btnRight_id);
 	button_init(&btnLeft, read_button_GPIO, 0, btnLeft_id);
 
-    button_attach(&btnRight,     SINGLE_CLICK,       BTNR_SingleClick_Handler);
-    button_attach(&btnRight,     DOUBLE_CLICK,       BTNR_DoubleClike_Handler);
-    button_attach(&btnLeft,    SINGLE_CLICK,       BTNL_SingleClick_Handler);
-    button_attach(&btnLeft,     DOUBLE_CLICK,       BTNL_DoubleClike_Handler);
+    button_attach(&btnRight, BTN_SINGLE_CLICK, BTNR_SingleClick_Handler, &btnR_state);
+    button_attach(&btnRight, BTN_DOUBLE_CLICK, BTNR_DoubleClike_Handler, &btnR_state);
+    button_attach(&btnLeft,  BTN_SINGLE_CLICK, BTNL_SingleClick_Handler, &btnL_state);
+    button_attach(&btnLeft,  BTN_DOUBLE_CLICK, BTNL_DoubleClike_Handler, &btnL_state);
 
     button_start(&btnRight);
 	button_start(&btnLeft);
@@ -165,18 +169,22 @@ uint8_t read_button_GPIO(uint8_t button_id)
 	}
 }
 
-void BTNR_SingleClick_Handler(void* btn){
-    btnR_Clicked = 1;
+void BTNR_SingleClick_Handler(Button* btn, void* user_data){
+    (void)btn;
+    ((btn_state_t*)user_data)->single_clicked = 1;
 }
-void BTNL_SingleClick_Handler(void* btn){
-    btnL_Clicked = 1;
+void BTNL_SingleClick_Handler(Button* btn, void* user_data){
+    (void)btn;
+    ((btn_state_t*)user_data)->single_clicked = 1;
 }
 
-void BTNR_DoubleClike_Handler(void* btn){
-    btnR_Double_Clicked = 1;
+void BTNR_DoubleClike_Handler(Button* btn, void* user_data){
+    (void)btn;
+    ((btn_state_t*)user_data)->double_clicked = 1;
 }
-void BTNL_DoubleClike_Handler(void* btn){
-    btnL_Double_Clicked = 1;
+void BTNL_DoubleClike_Handler(Button* btn, void* user_data){
+    (void)btn;
+    ((btn_state_t*)user_data)->double_clicked = 1;
 }
 
 void Multi_btn_timer_5ms(){
@@ -234,24 +242,28 @@ static void keypad_read(lv_indev_t *indev, lv_indev_data_t *data)
 /*Get the currently being pressed key.  0 if no key is pressed*/
 static uint32_t keypad_get_key(void)
 {
+    /* 经按钮的 user_data 取状态(不再使用文件级全局旗标) */
+    btn_state_t* rs = (btn_state_t*)btnRight.user_data;
+    btn_state_t* ls = (btn_state_t*)btnLeft.user_data;
+
     // get state from btn cb function
-    if(btnL_Clicked){
-        btnL_Clicked = 0;
+    if(ls->single_clicked){
+        ls->single_clicked = 0;
         ESP_LOGI("Single Click", "L !!");
         return 2;
     }
-    if(btnR_Clicked){
-        btnR_Clicked = 0;
+    if(rs->single_clicked){
+        rs->single_clicked = 0;
         ESP_LOGI("Single Click", "R !!");
         return 1;
     }
-    if(btnL_Double_Clicked){
-        btnL_Double_Clicked = 0;
+    if(ls->double_clicked){
+        ls->double_clicked = 0;
         ESP_LOGI("Double Click", "L !!");
         return 4;
     }
-    if(btnR_Double_Clicked){
-        btnR_Double_Clicked = 0;
+    if(rs->double_clicked){
+        rs->double_clicked = 0;
         ESP_LOGI("Double Click", "R !!");
         return 5;
     }
